@@ -1,0 +1,617 @@
+// <!--
+try {
+	var fs = require('fs')
+	var is_node = true
+	var request = require('request');
+	var jsdom = require("jsdom");
+	var JSDOM = jsdom.JSDOM;
+
+	var input_file = process.argv[2]
+	var output_file = process.argv[3]
+	var src_folder = process.argv[4]
+	if (src_folder == null) {
+		input_file = process.argv[1]
+		output_file = process.argv[2]
+		src_folder = process.argv[3]
+	}
+
+	if (src_folder == null) {
+		src_folder = ""
+	}
+
+	var raw_html = fs.readFileSync(input_file, "utf8");  
+	var dom = new JSDOM(raw_html)
+
+	var _window = dom.window
+	_window.document.registerElement = stub_register
+	_window.origin = ""
+	console.log("\n##### Compiling " + input_file + " #####")
+} catch (error) {
+	var is_node = false
+	var _window = window
+	var src_folder = ""
+	_window.origin = _window.location.origin + "/"
+
+	if (_window.document.registerElement == null) {
+		_window.document.registerElement = stub_register
+		window.is_supported = true
+	}
+}
+
+
+function stub_register (tagName, prototype) {
+	var codewords = []
+	var force = false
+	if (tagName.indexOf("*") > -1) {
+		var first_name = tagName.split("-")[0].toLowerCase()
+		if (is_node == true) {
+			var matched_elements = _document.body.querySelectorAll("*")
+			for (var t=0; t<matched_elements.length; t++) {
+				if (matched_elements[t].tagName.toLowerCase().indexOf(first_name + "-") > -1) {
+					codewords.push(matched_elements[t])
+				}
+			}
+		} else {
+			var xpath = "//*[contains(local-name(), '" + first_name + "')]"
+			var codewords = getElementsByXPath(xpath)
+			force = true
+		}
+	} else {
+		codewords = _document.body.querySelectorAll(tagName)
+	}
+	
+	for (var d=0; d<codewords.length; d++) {
+		if (codewords[d].closest("xmp") == null) {
+			codeword.attached_callback(codewords[d], force)
+		}
+	}
+}
+
+
+function is_custom_el (tagName) {
+	// contains hyphen, does not start with digit or hyphen, does not contain 'amp'
+	tagName = tagName.toLowerCase()
+
+	var svg_attributes = ["accent-height", "alignment-baseline", "arabic-form", "baseline-shift", "cap-height", "clip-path", "clip-rule", "color-interpolation", "color-interpolation-filters", "color-profile", "color-rendering", "dominant-baseline", "enable-background", "fill-opacity", "fill-rule", "flood-color", "flood-opacity", "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style", "font-variant", "font-weight", "glyph-name", "glyph-orientation-horizontal", "glyph-orientation-vertical", "horiz-adv-x", "horiz-origin-x", "image-rendering", "letter-spacing", "lighting-color", "marker-end", "marker-mid", "marker-start", "overline-position", "overline-thickness", "panose-1", "paint-order", "pointer-events", "rendering-intent", "shape-rendering", "stop-color", "stop-opacity", "strikethrough-position", "strikethrough-thickness", "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity", "stroke-width", "text-anchor", "text-decoration", "text-rendering", "underline-position", "underline-thickness", "unicode-bidi", "unicode-range", "units-per-em", "v-alphabetic", "v-hanging", "v-ideographic", "v-mathematical", "vector-effect", "vert-adv-y", "vert-origin-x", "vert-origin-y", "word-spacing", "writing-mode", "x-height"]
+	if (svg_attributes.indexOf(tagName) > -1) {
+		return false
+	}
+
+	var is_custom_el = (tagName.indexOf("-") > -1 && tagName.startsWith("amp-") == false && tagName.startsWith("i-amphtml") == false)
+	return is_custom_el
+}
+
+
+function getElementsByXPath(xpath, parent) {
+    var results = [];
+    var query = document.evaluate(xpath, parent || document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    for (var i = 0, length=query.snapshotLength; i < length; ++i) {
+        results.push(query.snapshotItem(i));
+    }
+
+    return results;
+}
+
+
+_window.prototypes = {}
+_window.dictionary = []
+_window.loading = []
+var _document = _window.document
+var codeword_regexp = new RegExp(/<[A-Za-z0-9]{1,10}-[A-Za-z0-9]{1,10}>/g)
+
+
+var codeword = {}
+_window.to_visit_stack = []
+codeword.sort_scan = function () {
+	return _window.to_visit_stack.sort(function(a, b){
+		if (a[0] == b[0]) {
+			return b[1] - a[1] // return by child index
+		} else {
+			return b[0] - a[0] // return by depth
+		}
+	})
+}
+
+codeword.scan_dom = function (el, depth) {
+	return new Promise(function(resolve, reject){
+		for (var c=0; c<el.children.length; c++) {
+			var child = el.children[c]
+			if (_window.to_visit_stack.indexOf([depth, c, child] == -1)) {
+				_window.to_visit_stack.push([depth, c, child])
+				if (child.children.length > 0) {
+					codeword.scan_dom(child, depth+1).then(function (_resolve) {
+						resolve()
+					})
+				} else {
+					resolve()
+				}
+			} else {
+				resolve()
+			}
+		}
+	})
+}
+
+_window.dictionary = {}
+_window.world_dictionary_versions = {}
+codeword.process_scan = function (max_depth) {
+	for (var e=0; e<_window.to_visit_stack.length; e++) {
+		var el_pointer = _window.to_visit_stack[e]
+		var el_depth = el_pointer[0]
+		var el_child = el_pointer[1]
+		var el = el_pointer[2]
+		var el_tagname = el.tagName.toLowerCase()
+		if (is_custom_el(el_tagname) && el_depth > max_depth) {
+			if (_window.dictionary.hasOwnProperty(el_tagname) == false) {
+				_window.dictionary[el_tagname] = "loading"
+				var urls_to_try = []
+				var parser = _document.createElement("a");
+
+				if (_window.dictionary.hasOwnProperty(el_tagname) && _window.dictionary[el_tagname] == "variable") {
+					console.log(el_tagname + " loaded as variable")
+				} else {
+					var cache_buster = "?t=" + Date.now()
+					var path = "dictionary/" + el_tagname + ".html" + cache_buster
+		    		parser.href = _window.origin + src_folder + path
+		    		urls_to_try.push(parser.href)
+		    	
+		    		var wildcard_path = "dictionary/" + el_tagname.split("-")[0] + "-*.html" + cache_buster
+		    		parser.href = _window.origin + src_folder + wildcard_path
+		    		urls_to_try.push(parser.href)
+
+		    		// attempt load from world dictionary
+		    		var world_dictionary = "http://dictionary.codeword.it/" + el_tagname + ".html" + cache_buster
+		    		urls_to_try.push(world_dictionary)
+
+		    		load_codeword = function (def_url) {
+		    			return new Promise(function (resolve, reject) {
+							codeword.load_definition(def_url).then(function(response){
+					    		codeword.parse_definition(response.definition, def_url, response.version)
+					    		resolve()
+					    	}, function (error) {
+					    		urls_to_try.shift()
+
+					    		if (urls_to_try.length > 0) {
+					    			load_codeword(urls_to_try[0]).then(function(_resolve) {
+					    				resolve()
+					    			}, function (error) {
+					    				resolve()
+					    			})
+					    		}
+					    	})	
+		    			})
+		    		}
+		    		
+		    		load_codeword(urls_to_try[0])
+		    	}
+			} else if (_window.dictionary.hasOwnProperty(el_tagname) == true && _window.dictionary[el_tagname] == "defined") {
+				stub_register(el_tagname)
+			}
+		}
+	}
+
+	if (max_depth >= 0) {
+		setTimeout(function () {
+			codeword.process_scan(max_depth - 1)
+			codeword.scan_and_replace()
+		}, 100)
+	}
+}
+
+
+codeword.scan_and_replace = function () {
+	_window.to_visit_stack = []
+
+	codeword.scan_dom(_document.body, 0).then(function(){
+		var sorted_stack = codeword.sort_scan()
+
+		var has_custom_elements = false
+		for (var e=0; e<_window.to_visit_stack.length; e++) {
+			if (is_custom_el(_window.to_visit_stack[e][2].tagName) == true) {
+				has_custom_elements = true
+			}
+		}
+
+		// only process if custom elements are in the stack
+		if (has_custom_elements == true) {
+			codeword.process_scan(sorted_stack[0][0]) // and scan from depth of deepest element
+		}
+	})
+}
+
+
+codeword.load_definition = function (url) {
+    return new Promise(function(resolve, reject) {
+    	if (is_node == true) {
+    		if (url.indexOf("https") == -1) {
+    			var raw_html = fs.readFileSync(url, "utf8");
+    			resolve(raw_html)
+    		} else {
+				request.get(url, function (error, response, body) {
+					if (!error && response.statusCode == 200) {
+					    resolve(body)
+					} else {
+						reject(error)
+					}
+				});
+    		}
+    	} else {
+	        if (url === undefined) {
+	            return
+	        }
+
+	        var xhr = new XMLHttpRequest();
+	        if ('withCredentials' in xhr) {
+	            xhr.open("GET", url, true);
+	        } else {
+	            reject(); 
+	        }
+
+	        xhr.onloadend = function() {
+	            if (xhr.status != 200) {
+	                reject(xhr.response);
+	                return
+	            } else {
+	                resolve({
+	                	definition: xhr.response,
+	                	version: xhr.getResponseHeader('x-goog-generation')
+	                })
+
+	                return
+	            }
+	        };
+
+	        xhr.onerror = function(error) {
+	            reject(error)
+	        }
+
+	        try {
+	            xhr.send()
+	            return;
+	        } catch (_error) {
+	        	reject(_error)
+	            return;
+	        }
+	    }
+
+    })
+}
+
+
+codeword.attached_callback = function (el, force) {
+	if (is_node == true || (force != null && force == true || window.is_supported == true)) {
+		var _el = el
+	} else {
+		var _el = this
+	}
+
+	var _el_name = _el.tagName.toLowerCase()
+	var _el_name_wildcard = _el_name.split("-")[0] + "-*"
+	if (_window.prototypes.hasOwnProperty(_el_name) == true) {
+		_el_name = _el_name
+	} else if (_window.prototypes.hasOwnProperty(_el_name_wildcard) == true) {
+		_el_name = _el_name_wildcard
+	} else {
+		_el_name = null
+	}
+
+	if (_el_name != null) {
+		if (_window.prototypes[_el_name].hasOwnProperty("template") == true) {
+			var prototype_template = _document.createElement("div");
+			prototype_template.innerHTML = _window.prototypes[_el_name].template	
+		}
+
+		if (_window.prototypes[_el_name].hasOwnProperty("type") == true && _window.prototypes[_el_name]["type"] == "javascript") {
+			var prototype_template = _document.createElement("script");
+			prototype_template.type = "text/javascript";
+			prototype_template.textContent = _window.prototypes[_el_name].template;
+		}
+
+		// aggregate template variables
+		var template_elements = prototype_template.querySelectorAll("*")
+		var template_vars = []
+		for (var t=0; t<template_elements.length; t++) {
+
+			// add all custom elements with the attribute 'var'
+			var template_element = template_elements[t]
+			var template_attributes = template_elements[t].attributes
+			if (is_custom_el(template_element.tagName) == true && template_element.hasAttribute("var")) {
+				var var_name = template_element.tagName.toLowerCase()
+				template_vars.push(var_name)
+				_window.dictionary[var_name] = "variable"
+			}
+
+			// add all attributes with custom element names in them
+			for (var a=0; a<template_elements[t].attributes.length; a++) {
+				var attribute = template_attributes[a]
+				var var_match = attribute.value.match(codeword_regexp)
+				if (var_match != null) {
+					for (var m=0; m<var_match.length; m++) {
+						var stripped_match = var_match[m].substring(1, var_match[m].length - 1) // codeword name
+						template_vars.push(stripped_match)
+						_window.dictionary[stripped_match] = "variable"
+					}
+				}
+			}
+		}
+		
+		// handle passed in variables (split, inner, custom)
+		var preparsed_template = ""
+		if (_window.prototypes[_el_name].hasOwnProperty("template") == true) {
+			preparsed_template = _window.prototypes[_el_name].template	
+		}
+
+		var input_vars = {}
+
+		// handle variables passed in as attributes that pass the custom element name test
+		var _el_children = Array.prototype.slice.call(_el.querySelectorAll("*"))
+		_el_children.push(_el)
+
+		for(var c=0; c<_el_children.length; c++) {
+			var child_el = _el_children[c]
+			for (var a=0; a<child_el.attributes.length; a++) {
+				if (is_custom_el(child_el.attributes[a].name)) {
+					input_vars[child_el.attributes[a].name] = child_el.attributes[a].value	
+				}
+			}
+		}
+
+		if (_el.attributes.length > 0) {
+			for (var a=0; a<_el.attributes.length; a++) {
+				if (is_custom_el(_el.attributes[a].name)) {
+					input_vars[_el.attributes[a].name] = _el.attributes[a].value	
+				}
+			}
+		}
+
+		// handle split variables (var-1|var-2)
+		var split_vars = _el.innerHTML.trim().split("|")
+		if (split_vars.length > 1) {
+			for(var s=0; s<split_vars.length; s++) {
+				// replace var-x using text replace
+				var var_name = "var-" + (s + 1)
+				var var_value = split_vars[s]
+
+				input_vars[var_name] = var_value
+			}
+
+		// handle <inner-html>
+		} else if (prototype_template.querySelector("inner-html") != null || template_vars.indexOf("inner-html") > -1) {
+			input_vars['inner-html'] = _el.innerHTML
+		} else {
+		// handle custom named variables
+			var fed_in_variable_elements = _el.querySelectorAll("*")
+			for (var c=0; c<fed_in_variable_elements.length; c++) {
+				var fed_in_variable_element = fed_in_variable_elements[c]
+
+				// if it's a custom element and not an AMP element
+				// replace its innerhtml
+				var fed_in_variable_element_tagname = fed_in_variable_element.tagName.toLowerCase()
+				if (is_custom_el(fed_in_variable_element_tagname)) {
+					input_vars[fed_in_variable_element_tagname] = fed_in_variable_element.innerHTML
+				}
+			}
+		}
+
+		// replace all direct references
+		var input_var_keys = Object.keys(input_vars)
+		for(var k=0; k<input_var_keys.length; k++) {
+			var var_name = input_var_keys[k]
+			var var_value = input_vars[var_name]
+
+			// raw replace: to deal with weird attributes (ie. [class])
+			preparsed_template = preparsed_template.replace(new RegExp("<" + var_name + "></" + var_name + ">", "g"), var_value)
+			preparsed_template = preparsed_template.replace(new RegExp("<" + var_name + ">", "g"), var_value)
+			preparsed_template = preparsed_template.replace(new RegExp("&lt;" + var_name + "&gt;", "g"), var_value) // for encoded href attributes
+		}
+
+		prototype_template.innerHTML = preparsed_template
+		for(var k=0; k<input_var_keys.length; k++) {
+			var var_name = input_var_keys[k]
+			var var_value = input_vars[var_name]
+
+			// replace all input_vars found as elements in codeword template
+			while (prototype_template.querySelector(var_name) != null && is_custom_el(var_name)) {
+				prototype_template.querySelector(var_name).outerHTML = var_value
+			}
+
+			// replace all input_vars found as attributes in codeword template
+			var template_elements = prototype_template.querySelectorAll("*")
+			for (var t=0; t<template_elements.length; t++) {
+				var template_element = template_elements[t]
+				var template_attributes = template_element.attributes
+				for (var a=0; a<template_element.attributes.length; a++) {
+					var attribute = template_attributes[a]
+					var attr_value = attribute.value
+
+					// replace attribute value with the input value (also handle encoded values)
+					if ((attr_value.indexOf("<" + var_name + ">") > -1 || attr_value.indexOf("&lt;" + var_name + "&gt;") > -1) && is_custom_el(var_name)) {
+						var new_attribute_value = attribute.value.replace("<" + var_name + ">", var_value)
+						// new_attribute_value = attribute.value.replace("&lt;" + var_name + "&gt;", var_value)
+						template_element.setAttribute(attribute.name, new_attribute_value)
+					}
+				}
+			}
+		}
+
+		// CLEAN UP
+		// remove any unreplaced passed in variables in as attributes
+		var template_elements = prototype_template.querySelectorAll("*")
+		for (var t=0; t<template_elements.length; t++) {
+			var template_element = template_elements[t]
+			var element_name = template_element.tagName.toLowerCase()
+			var element_is_var = template_element.hasAttribute('var') || element_name.startsWith("var-") || element_name == "inner-html"
+			
+			// if this element is a unreplaced custom-element, remove it
+			if (is_custom_el(element_name) && element_is_var) {
+				template_element.remove()
+			
+			// if this element is not a custom element, but has attributes
+			// with custom elements in it, remove them
+			} else {
+				var template_attributes = template_element.attributes
+				for (var a=0; a<template_element.attributes.length; a++) {
+					var attribute = template_attributes[a]
+					var attribute_match = attribute.value.match(codeword_regexp)
+					if (attribute_match != null) {
+						var new_attribute_value = attribute.value.replace(attribute_match[0], "")
+						template_element.setAttribute(attribute.name, new_attribute_value)
+					}
+				}
+			}
+		}
+
+		if (_window.prototypes[_el_name].hasOwnProperty("type") == true && _window.prototypes[_el_name]["type"] == "javascript") {
+			_document.head.appendChild(prototype_template)
+			_el.remove()
+		} else {
+			_el.outerHTML = prototype_template.innerHTML
+		}
+	}
+}
+
+
+codeword.parse_definition = function (text, origin_url, version) {
+	var importer = _document.createElement("pre");
+	importer.innerHTML = text;
+
+	var definitions = Array.from(importer.children)
+	if (definitions.length > 1) {
+		console.log("Only one definition allowed per file", origin_url, definitions)
+		return
+	}
+
+	for (var d=0; d<definitions.length; d++) {
+		var definition = definitions[d]
+		if (definition.hasAttribute("definition") == true) {
+			var def_name = definition.tagName.toLowerCase()
+
+			var prototype = Object.create(_window.HTMLElement.prototype)
+			var children = Array.from(definition.children)
+
+			_window.prototypes[def_name] = {}
+			for (var c=0; c<children.length; c++) {
+				var child = children[c]
+
+				if (child.tagName == "TEMPLATE") {
+					if (child.hasAttribute("type") && child.getAttribute("type").indexOf("javascript") > -1) {
+						prototype["type"] = "javascript"
+						_window.prototypes[def_name]['type'] = "javascript"
+					}
+
+					prototype["template"] = child.innerHTML
+					_window.prototypes[def_name]['template'] = child.innerHTML
+				} else if (child.tagName == "STYLE") {
+					var preexisting_head_style = _document.head.querySelector("style")
+					if (child.hasAttribute("exclude") == true || preexisting_head_style == null) {
+						child.removeAttribute("exclude")
+						_document.head.appendChild(_document.createTextNode("\n\t"))
+						_document.head.appendChild(child)	
+					} else {
+						if (child.hasAttribute("prepend") == true) {
+							preexisting_head_style.textContent = child.textContent + "\n" + preexisting_head_style.textContent
+						} else {
+							preexisting_head_style.textContent = preexisting_head_style.textContent + "\n" + child.textContent
+						}
+						
+					}
+				} else if (child.tagName == "SCRIPT") {
+					var s = _document.createElement("script");
+	                s.type = "text/javascript";
+	                s.textContent = child.textContent;
+
+	                var head_query_selector = "script"
+					for (index=child.attributes.length-1; index>-1; --index) {
+					  	attribute = child.attributes[index];
+					  	s.setAttribute(attribute.name, attribute.value);
+					  	head_query_selector = head_query_selector + "[" + attribute.name + "='" + attribute.value + "']"
+					}
+
+					if (head_query_selector.indexOf("src") == -1 || _document.head.querySelector(head_query_selector) == null) {
+						_document.head.appendChild(_document.createTextNode("\n\t"))
+						_document.head.appendChild(s)	
+					}
+	            } else if (["NOSCRIPT", "META", "LINK"].indexOf(child.tagName.toUpperCase()) > -1) {
+	            	_document.head.appendChild(_document.createTextNode("\n\t"))
+	            	_document.head.appendChild(child)
+	            }
+			}
+
+			if (prototype.hasOwnProperty("template") == false) {
+				prototype.template = "" 
+			}
+
+			prototype["attachedCallback"] = codeword.attached_callback
+
+			if (_window.dictionary.hasOwnProperty(def_name) == true && _window.dictionary[def_name] != "defined") {
+				if (def_name.indexOf("*") == -1) {
+					_document.registerElement(def_name, {
+						prototype: prototype
+					})
+				} else {
+					stub_register(def_name)
+				}
+
+				_window.dictionary[def_name] = "defined"
+			}
+
+			if (version) {
+				_window.world_dictionary_versions[def_name] = version }
+		}
+	}
+}
+
+
+_document.addEventListener("DOMContentLoaded", function () {
+	codeword.scan_and_replace()
+
+	if (is_node == true) {
+		setTimeout(function(){
+			var output = "<!DOCTYPE html>\n" + _document.documentElement.outerHTML
+			
+			output = output.replace('<script src="https://codeword.it"></script>', '')
+			output = output.replace('<script src="https://tryda.sh"></script>', '')
+			output = output.replace("<script src='https://codeword.it'></script>", "")
+			output = output.replace("<script src='https://tryda.sh'></script>", "")
+
+			fs.writeFileSync(output_file, output)
+			console.log("Succesfully compiled " + input_file + ".")
+
+			if (Object.keys(_window.world_dictionary_versions).length > 0) {
+				fs.writeFileSync("definition-lock.json", JSON.stringify(_window.world_dictionary_versions))
+			}
+		}, 3000)
+	}
+})
+
+/*-->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Codeword</title>
+	<meta name="description" content="Codeword is a programming language that wraps your code, in words."/>
+    <style>
+        body {
+            color:#fff;
+            font-family:"Proxima Nova", "proxima nova", "proxima-nova", Helvetica, sans-serif;
+            line-height:1px;
+            font-size:1px;
+        }
+
+        .body {
+            color:#000;
+            font-size:1rem;
+            line-height:1em;
+        }
+    </style>
+    <script src="/"></script>
+</head>
+<body>
+	<div class="body">
+		<reset-css></reset-css>
+		<codeword-examples></codeword-examples>
+	</div>
+</body>
+</html>
+<!-- */
+// -->
