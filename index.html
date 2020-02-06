@@ -166,10 +166,9 @@ codeword.process_scan = function (max_depth) {
                     try {
                         var protocol = _window.location.protocol
                     } catch (error) {
-                        console.log(error)
                         var protocol = "http:" }
-                    alert(protocol)
                     var world_dictionary = protocol + "//dictionary.codeword.it/" + el_tagname + ".html" + cache_buster
+                    console.log("world dict URL", world_dictionary)
                     urls_to_try.push(world_dictionary)
 
                     load_codeword = function (def_url) {
