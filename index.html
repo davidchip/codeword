@@ -151,16 +151,23 @@ codeword.process_scan = function (max_depth) {
                     console.log(el_tagname + " loaded as variable")
                 } else {
                     var cache_buster = "?t=" + Date.now()
+
+                    // attempt local load from /dictionary
                     var path = "dictionary/" + el_tagname + ".html" + cache_buster
                     parser.href = _window.origin + src_folder + path
                     urls_to_try.push(parser.href)
                 
+                    // attempt local wildcard load
                     var wildcard_path = "dictionary/" + el_tagname.split("-")[0] + "-*.html" + cache_buster
                     parser.href = _window.origin + src_folder + wildcard_path
                     urls_to_try.push(parser.href)
 
                     // attempt load from world dictionary
-                    var world_dictionary = "http://dictionary.codeword.it/" + el_tagname + ".html" + cache_buster
+                    try {
+                        var protocol = _window.location.protocol
+                    } catch (error) {
+                        var protocol = "http:" }
+                    var world_dictionary = protocol + "//dictionary.codeword.it/" + el_tagname + ".html" + cache_buster
                     urls_to_try.push(world_dictionary)
 
                     load_codeword = function (def_url) {
