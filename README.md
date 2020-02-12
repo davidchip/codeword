@@ -43,7 +43,7 @@ You'll notice three things about this element:
 
 Child Elements
 -----
-We are allowed to put elements inside of other elements. These are called **child elements**. Whereas a `<p>` element is suitable to represent a paragraph, a `<b>` element represents bolded text. We can emphasize our text by therefore combining these two elements:
+We can put elements inside of other elements. These are called **child elements**. Whereas a `<p>` element represents a paragraph, a `<b>` element represents bold text. We can emphasize our text by therefore combining these two elements:
 
 ```html
 <p>This is a paragraph of text. Here's a <b>second</b> sentence.</p>
@@ -56,9 +56,9 @@ In the above case, the `<b>` element is the child of the `<p>` element:
 
 Element Attributes
 -----
-Sometimes, we want to provide additional information about an element without adjusting the content it contains. This is where **attributes** come in. Attributes are placed in the **opening tag** of an element, and are used to further decorate/describe it:
+Sometimes, we want to provide additional information about an element. This is where **attributes** come in. Attributes are placed in the **opening tag** of an element, and are used to further describe it:
 
-An attribute looks like this:
+An attribute added to our `<p>` element would look like this:
 
 ```html
 <p title="First Paragraph">This is a paragraph. Here's a second sentence.</p>
@@ -83,53 +83,55 @@ Spaces and Line Breaks
 -----
 Computers don't care where you put your spaces:
 
-**1) Multiple spaces are condensed into 1 space**
+**1) Multiple spaces are condensed into 1 space:**
 
-```html
-<p>I am a paragraph</p>
-```
-
-Looks the same as:
 
 ```html
 <p>I am a                           paragraph</p>
 ```
 
-![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Condensed Spaces")
-
-**2) Linebreaks are treated as spaces**
+Looks the same as:
 
 
 ```html
 <p>I am a paragraph</p>
 ```
 
-Looks the same as:
+
+![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Condensed Spaces")
+
+**2) Linebreaks are treated like spaces:**
 
 ```html
 <p>I am a     
    paragraph</p>
 ```
 
-- **How do you add linebreaks?** Use the break element `<br>` which like our `<img>` element, also contains **no closing tag**
+Looks the same as:
 
 ```html
-    <p>I am a paragraph</p>
+<p>I am a paragraph</p>
+```
 
-    <p>I am a<br>
-       paragraph</p>
+![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Condensed Spaces")
+
+So just how do you add linebreaks? You can use the break element `<br>`, an **element with only an opening tag**:
+
+```html
+<p>I am a paragraph</p>
+
+<p>I am a<br>
+   paragraph</p>
 ```
 
 ![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Adding Linebreaks")
 
-Note how the line breaks are also repected in the last example.
-
 
 Elements with only opening tags
 -----
-There's one rule we've learned so far that we are already going to break... that all elements have a **opening** and **closing** tag. But in fact, there are **a few elements that only have an opening tag**. The most common is the `<img>` element, which naturally, is used to display an image.
+There's one rule we've learned so far that we are already going to break... that all elements have an opening **and** a closing tag. In fact, there are **a few elements that only have an opening tag**. The most common is the `<br>` element and the `<img>` element, which naturally, is used to display an image.
 
-To define an `<img>` element, we simply provide it a `src` attribute, representing the *source* of the file. For instance, if we uploaded our image to Flickr at `https://www.flickr.com/photos/codeword/49523044098.jpeg` - then our element would look like: 
+To define an `<img>` element, we simply provide it a `src` attribute, representing the *source* of the image file. For instance, if we uploaded our image to Flickr at `https://www.flickr.com/photos/codeword/49523044098.jpeg` - then our element would look like: 
 
 In the case of an image element, the opening tag encompasses all of the content of the element.
 
