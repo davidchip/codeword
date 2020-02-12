@@ -5,11 +5,11 @@ The Webpage
 -----
 To create a **webpage**, we'll start by creating a file ending in `.html` in TextEdit on a Mac, or Notepad on Windows. For this lesson, we'll keep the naming simple and pretend we're creating an about webpage called `about.html`. 
 
-Within `about.html`, we will save a simple HTML webpage that includes two **elements**:
+Within `about.html`, we will include two **elements**:
 
 ```html
 <html>
-	<body>About Page</body>
+    <body>About Page</body>
 </html>
 ```
 
@@ -30,9 +30,9 @@ Just like a normal sentence has certain rules to it (capitalize the first letter
 
 You'll notice three things about this element:
 
-- 1) It starts with an **opening tag**: `<p>`
-- 2) It ends with a **closing tag**: `</p>`
-- 3) It contains **content**: `This is a paragraph of text. Here's a second sentence.`
+- 1) It starts with `<p>` -> called an **opening tag**
+- 2) It ends with `</p>` -> called a **closing tag**
+- 3) It contains **content** -> `This is a paragraph of text. Here's a second sentence.`
 
 **These three rules unite all HTML elements**, and they're easy to remember because of how similar they are to sentence structure:
 
@@ -64,22 +64,74 @@ An attribute looks like this:
 <p title="First Paragraph">This is a paragraph. Here's a second sentence.</p>
 ```
 
-Attributes come in pairs and also follow three rules: 
+Attributes come in pairs of words and have a few rules:
 
-- 1) Both sides are separated by an **equals sign**: `=`
-- 2) The left side represents the **attribute name**: `title` in the above case
-- 3) The right side is surrounded in quotes and represents the **attribute value**: `"First Paragraph"`
+```html
+title="First Paragraph"
+```
 
-The `title` attribute has the special behavior of showing a "tooltip" when you hover your mouse over its element, allowing the following behavior:
+- 1) The left word represents the attribute's **name** -> `title` in the above case
+- 2) The right word represents the attribute's **definition** -> `"First Paragraph"`
+- 3) Both words are separated by an **equals sign**: `=`
+
+The `title` attribute shows a "tooltip" when you hover your mouse over its element:
 
 ![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Title Tooltip")
 
 
-Elements without closing tags
+Spaces and Line Breaks
 -----
-There's one rule we've learned so far that we are already going to break... that all elements have a **closing tag**. There are in fact **a few elements that do not have a closing tag**. The most common is the `<img>` element, which naturally, is used to display an image.
+Computers don't care where you put your spaces:
+
+**1) Multiple spaces are condensed into 1 space**
+
+```html
+<p>I am a paragraph</p>
+```
+
+Looks the same as:
+
+```html
+<p>I am a                           paragraph</p>
+```
+
+![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Condensed Spaces")
+
+**2) Linebreaks are treated as spaces**
+
+
+```html
+<p>I am a paragraph</p>
+```
+
+Looks the same as:
+
+```html
+<p>I am a     
+   paragraph</p>
+```
+
+- **How do you add linebreaks?** Use the break element `<br>` which like our `<img>` element, also contains **no closing tag**
+
+```html
+    <p>I am a paragraph</p>
+
+    <p>I am a<br>
+       paragraph</p>
+```
+
+![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Adding Linebreaks")
+
+Note how the line breaks are also repected in the last example.
+
+
+Elements with only opening tags
+-----
+There's one rule we've learned so far that we are already going to break... that all elements have a **opening** and **closing** tag. But in fact, there are **a few elements that only have an opening tag**. The most common is the `<img>` element, which naturally, is used to display an image.
 
 To define an `<img>` element, we simply provide it a `src` attribute, representing the *source* of the file. For instance, if we uploaded our image to Flickr at `https://www.flickr.com/photos/codeword/49523044098.jpeg` - then our element would look like: 
+
+In the case of an image element, the opening tag encompasses all of the content of the element.
 
 ```html
 <img src="https://www.flickr.com/photos/codeword/49523044098.jpeg">
@@ -90,46 +142,6 @@ Want to set a width or height? You can add them as attributes:
 ```html
 <img src="https://codeword.it/images/logo.jpeg" width="300px" height="500px">
 ```
-
-
-Spaces and Line Breaks
------
-The spacebar key and enter key follow slightly special rules in our HTML file:
-
-- **Multiple spaces are condensed to 1 space** -> these two paragraphs are displayed identically
-
-```html
-	<p>I am a paragraph</p>
-
-	<p>I am a                           paragraph</p>
-```
-
-![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Condensed Spaces")
-
-- **Linebreaks are treated as spaces** -> these two are also displayed in the same way
-
-
-```html
-	<p>I am a paragraph</p>
-
-	<p>I am a     
-       paragraph</p>
-```
-
-![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Linebreaks are Spaces")
-
-- **How do you add linebreaks?** Use the break element `<br>` which like our `<img>` element, also contains **no closing tag**
-
-```html
-	<p>I am a paragraph</p>
-
-	<p>I am a<br>
-       paragraph</p>
-```
-
-![alt text](https://www.flickr.com/photos/codeword/49523044098.jpeg "Adding Linebreaks")
-
-Note how the line breaks are also repected in the last example.
 
 
 Putting it all together
@@ -146,13 +158,13 @@ And here is our beautiful about page:
 
 ```html
 <html>
-	<body>
-		<img src="https://www.flickr.com/photos/codeword/49523044098.jpeg" width="300px" height="300px">
-		<p title="Knock Knock...">
-			Welcome to the Codeword about page! <br>
-			The <b>easiest</b> place where you can learn to code
-		</p>
-	</body>
+    <body>
+        <img src="https://www.flickr.com/photos/codeword/49523044098.jpeg" width="300px" height="300px">
+        <p title="Knock Knock...">
+            Welcome to the Codeword about page! <br>
+            The <b>easiest</b> place where you can learn to code
+        </p>
+    </body>
 </html>
 ```
 
