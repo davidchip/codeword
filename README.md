@@ -119,8 +119,6 @@ Looks the same as:
 So just how do you add linebreaks? You can use the break element `<br>`, an **element with only an opening tag**:
 
 ```html
-<p>I am a paragraph</p>
-
 <p>I am a<br>
    paragraph</p>
 ```
@@ -144,7 +142,7 @@ Want to set a width or height? You can add them as attributes:
 <img src="//live.staticflickr.com/65535/49523044098_2ece3925df_b.jpg" width="300px" height="300px">
 ```
 
-![alt text](https://live.staticflickr.com/65535/49532259623_8f744bdaa7.jpg "Images")
+![alt text](https://live.staticflickr.com/65535/49532259623_8f744bdaa7_b.jpg "Images")
 
 
 Putting it all together
@@ -171,6 +169,6 @@ And here is our beautiful about page:
 </html>
 ```
 
-![alt text](https://live.staticflickr.com/65535/49532983717_598c884bc7.jpg "Full Example")
+![alt text](https://live.staticflickr.com/65535/49532983717_598c884bc7_b.jpg "Full Example")
 
 Lesson 2 -> CSS
