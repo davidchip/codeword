@@ -99,7 +99,7 @@ Looks the same as:
 ```
 
 
-![alt text](https://live.staticflickr.com/65535/49532983452_07e49d3a90_n.jpg "Condensed Spaces")
+![alt text](https://live.staticflickr.com/65535/49532983452_07e49d3a90_b.jpg "Spaces are Condensed")
 
 **2) Linebreaks are treated like spaces:**
 
@@ -114,7 +114,7 @@ Looks the same as:
 <p>I am a paragraph</p>
 ```
 
-![alt text](https://live.staticflickr.com/65535/49532983452_07e49d3a90_n.jpg")
+![alt text](https://live.staticflickr.com/65535/49532983452_07e49d3a90_b.jpg "Linebreaks are Spaces")
 
 So just how do you add linebreaks? You can use the break element `<br>`, an **element with only an opening tag**:
 
