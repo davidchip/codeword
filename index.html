@@ -398,6 +398,11 @@ codeword.attached_callback = function (el, force) {
             }
         }
 
+        // handle <innerhtml->
+        if (prototype_template.querySelector("innerhtml-") != null) {
+            input_vars['innerhtml-'] = _el.innerHTML
+        }
+
         // add variable defaults as if they were inputs
         var variable_defaults = Object.keys(_window.defaults[_el_name])
         variable_defaults.forEach(function(default_variable_name) {
