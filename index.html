@@ -453,10 +453,9 @@ codeword.attached_callback = function (el, force) {
         for (var t=0; t<template_elements.length; t++) {
             var template_element = template_elements[t]
             var element_name = template_element.tagName.toLowerCase()
-            var element_is_var = template_element.hasAttribute('var') || element_name.startsWith("var-") || element_name == "inner-html"
             
-            // if this element is a unreplaced custom-element, remove it
-            if (is_custom_el(element_name) && element_is_var) {
+            // if this element is a unreplaced variable, remove it
+            if (is_variable_el(element_name)) {
                 template_element.remove()
             
             // if this element is not a custom element, but has attributes
