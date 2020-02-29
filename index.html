@@ -624,9 +624,9 @@ _document.addEventListener("DOMContentLoaded", function () {
             fs.writeFileSync(output_file, output)
             console.log("Succesfully compiled " + input_file + ".")
 
-            if (Object.keys(_window.world_dictionary_versions).length > 0) {
-                fs.writeFileSync("definition-lock.json", JSON.stringify(_window.world_dictionary_versions))
-            }
+            // if (Object.keys(_window.world_dictionary_versions).length > 0) {
+                // fs.writeFileSync("definition-lock.json", JSON.stringify(_window.world_dictionary_versions))
+            // }
         }, 3000)
     }
 })
