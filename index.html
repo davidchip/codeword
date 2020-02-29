@@ -223,7 +223,7 @@ codeword.process_scan = function (max_depth) {
         setTimeout(function () {
             codeword.process_scan(max_depth - 1)
             codeword.scan_and_replace()
-        }, 100)
+        }, 200)
     }
 }
 
@@ -349,10 +349,26 @@ codeword.attached_callback = function (el, force) {
             var template_element = template_elements[t]
             var template_attributes = template_elements[t].attributes
             if (is_variable_el(template_element.tagName) == true) {
-                var var_name = template_element.tagName.toLowerCase()
-                template_vars.push(var_name)
-                _window.dictionary[var_name] = "variable"
-                _window.defaults[_el_name][var_name] = template_element.innerHTML.trim()
+
+                // do not include elements within other custom elements
+                var _parent = template_element.parentElement
+                var _in_custom_el = false
+                while (_parent != prototype_template) {
+                    var _parent_tagname = _parent.tagName.toLowerCase()
+                    if(is_custom_el(_parent_tagname) == true) {
+                        _in_custom_el = true
+                        break
+                    } else {
+                        _parent = _parent.parentElement
+                    }
+                }
+
+                if (_in_custom_el == false) {
+                    var var_name = template_element.tagName.toLowerCase()
+                    template_vars.push(var_name)
+                    _window.dictionary[var_name] = "variable"
+                    _window.defaults[_el_name][var_name] = template_element.innerHTML.trim()
+                }
             }
 
             // add all attributes in the template with custom element names in them
@@ -394,12 +410,24 @@ codeword.attached_callback = function (el, force) {
             var fed_in_variable_element = fed_in_variable_elements[c]
             var fed_in_variable_tagname = fed_in_variable_element.tagName.toLowerCase()
             if (is_variable_el(fed_in_variable_tagname) == true) {
-                input_vars[fed_in_variable_tagname] = fed_in_variable_element.innerHTML
+                var _parent = fed_in_variable_element.parentElement
+                var _in_custom_el = false
+                while (_parent != _el) {
+                    if(is_custom_el((_parent.tagName.toLowerCase())) == true) {
+                        _in_custom_el = true
+                        break
+                    } else {
+                        _parent = _parent.parentElement
+                    }
+                }
+                if (_in_custom_el == false) {
+                    input_vars[fed_in_variable_tagname] = fed_in_variable_element.innerHTML
+                }
             }
         }
 
         // handle <innerhtml->
-        if (prototype_template.querySelector("innerhtml-") != null) {
+        if (prototype_template.querySelector("innerhtml-") != null && input_vars.hasOwnProperty("innerhtml-") == false) {
             input_vars['innerhtml-'] = _el.innerHTML
         }
 
@@ -419,7 +447,7 @@ codeword.attached_callback = function (el, force) {
 
             // raw replace: to deal with special attributes (ie. [class])
             preparsed_template = preparsed_template.replace(new RegExp("<" + var_name + "></" + var_name + ">", "g"), var_value)
-            // preparsed_template = preparsed_template.replace(new RegExp("<" + var_name + ">", "g"), var_value) // need coverage?
+            // preparsed_template = preparsed_template.replace(new RegExp("<" + var_name + ">", "g"), var_value) // CSS void element coverage
             preparsed_template = preparsed_template.replace(new RegExp("&lt;" + var_name + "&gt;", "g"), var_value) // for encoded href attributes
         }
 
@@ -454,6 +482,7 @@ codeword.attached_callback = function (el, force) {
 
         // CLEAN UP
         // remove any unreplaced passed in variables in as attributes
+        /*
         var template_elements = prototype_template.querySelectorAll("*")
         for (var t=0; t<template_elements.length; t++) {
             var template_element = template_elements[t]
@@ -477,6 +506,7 @@ codeword.attached_callback = function (el, force) {
                 }
             }
         }
+        */
 
         if (_window.prototypes[_el_name].hasOwnProperty("type") == true && _window.prototypes[_el_name]["type"] == "javascript") {
             _document.head.appendChild(prototype_template)
