@@ -622,6 +622,7 @@ _document.addEventListener("DOMContentLoaded", function () {
             output = output.replace("<script src='https://tryda.sh'></script>", "")
 
             fs.writeFileSync(output_file, output)
+            console.log(output_file)
             console.log("Succesfully compiled " + input_file + ".")
 
             // if (Object.keys(_window.world_dictionary_versions).length > 0) {
