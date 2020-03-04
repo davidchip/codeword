@@ -221,11 +221,10 @@ codeword.process_scan = function (max_depth) {
 
     if (max_depth >= 0) {
         setTimeout(function () {
+            console.log(max_depth)
             codeword.process_scan(max_depth - 1)
             codeword.scan_and_replace()
         }, 50)
-    } else {
-        return
     }
 }
 
