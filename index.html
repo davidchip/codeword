@@ -174,17 +174,17 @@ codeword.process_scan = function (max_depth) {
                 } else {
                     var cache_buster = "?t=" + Date.now()
 
-                    // attempt local load from /dictionary
-                    var path = "dictionary/" + el_tagname + ".html" + cache_buster
+                    // attempt local load from /codewords folder
+                    var path = "codewords/" + el_tagname + ".html" + cache_buster
                     parser.href = _window.origin + src_folder + path
                     urls_to_try.push(parser.href)
                 
-                    // attempt local wildcard load from /dictionary
-                    var wildcard_path = "dictionary/" + el_tagname.split("-")[0] + "-*.html" + cache_buster
+                    // attempt local wildcard load from /codewords
+                    var wildcard_path = "codewords/" + el_tagname.split("-")[0] + "-*.html" + cache_buster
                     parser.href = _window.origin + src_folder + wildcard_path
                     urls_to_try.push(parser.href)
 
-                    // attempt load from world dictionary
+                    // attempt load from world library
                     try {
                         var protocol = _window.location.protocol
                     } catch (error) {
