@@ -221,9 +221,9 @@ codeword.process_scan = function (max_depth) {
 
     if (max_depth >= 0) {
         setTimeout(function () {
-            codeword.process_scan(max_depth - 1)
             codeword.scan_and_replace()
-        }, 200)
+            codeword.process_scan(max_depth - 1)
+        }, 100)
     }
 }
 
@@ -622,6 +622,7 @@ _document.addEventListener("DOMContentLoaded", function () {
             output = output.replace("<script src='https://tryda.sh'></script>", "")
 
             fs.writeFileSync(output_file, output)
+            console.log(output)
             console.log("Succesfully compiled " + input_file + ".")
 
             // if (Object.keys(_window.world_dictionary_versions).length > 0) {
