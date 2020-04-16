@@ -68,7 +68,7 @@ function stub_register (tagName, prototype) {
 }
 
 
-function is_custom_el (tagName) {
+function is_codeword (tagName) {
     // contains hyphen, does not start with digit or hyphen, does not contain 'amp'
     tagName = tagName.toLowerCase()
 
@@ -77,8 +77,18 @@ function is_custom_el (tagName) {
         return false
     }
 
-    var is_custom_el = (tagName.indexOf("-") > -1 && tagName.startsWith("amp-") == false && tagName.startsWith("i-amphtml") == false)
-    return is_custom_el
+    var _is_custom_el = (tagName.indexOf("-") > -1 && tagName.startsWith("amp-") == false && tagName.startsWith("i-amphtml") == false && tagName.endsWith("-") == false)
+    return _is_custom_el
+}
+
+function is_var (element) {
+    if (typeof element == "string") {
+        var element_name = element.toLowerCase()
+    } else {
+        var element_name = element.tagName.toLowerCase()    
+    }
+    
+    return element_name.endsWith("-") || element_name == "innerhtml-"
 }
 
 
@@ -97,7 +107,7 @@ _window.prototypes = {}
 _window.dictionary = []
 _window.loading = []
 var _document = _window.document
-var codeword_regexp = new RegExp(/<[A-Za-z0-9]{1,10}-[A-Za-z0-9]{1,10}>/g)
+var var_regexp = new RegExp(/<[A-Za-z0-9]{1,10}-[A-Za-z0-9]{0,10}>/g)
 
 
 var codeword = {}
@@ -141,7 +151,7 @@ codeword.process_scan = function (max_depth) {
         var el_child = el_pointer[1]
         var el = el_pointer[2]
         var el_tagname = el.tagName.toLowerCase()
-        if (is_custom_el(el_tagname) && el_depth > max_depth) {
+        if (is_codeword(el_tagname) && el_depth > max_depth) {
             if (_window.dictionary.hasOwnProperty(el_tagname) == false) {
                 _window.dictionary[el_tagname] = "loading"
                 var urls_to_try = []
@@ -153,12 +163,12 @@ codeword.process_scan = function (max_depth) {
                     var cache_buster = "?t=" + Date.now()
 
                     // attempt local load from /dictionary
-                    var path = "dictionary/" + el_tagname + ".html" + cache_buster
+                    var path = "codewords/" + el_tagname + ".html" + cache_buster
                     parser.href = _window.origin + src_folder + path
                     urls_to_try.push(parser.href)
                 
                     // attempt local wildcard load
-                    var wildcard_path = "dictionary/" + el_tagname.split("-")[0] + "-*.html" + cache_buster
+                    var wildcard_path = "codewords/" + el_tagname.split("-")[0] + "-*.html" + cache_buster
                     parser.href = _window.origin + src_folder + wildcard_path
                     urls_to_try.push(parser.href)
 
@@ -168,7 +178,6 @@ codeword.process_scan = function (max_depth) {
                     } catch (error) {
                         var protocol = "http:" }
                     var world_dictionary = protocol + "//dictionary.codeword.it/" + el_tagname + ".html" + cache_buster
-                    console.log("world dict URL", world_dictionary)
                     urls_to_try.push(world_dictionary)
 
                     load_codeword = function (def_url) {
@@ -181,6 +190,7 @@ codeword.process_scan = function (max_depth) {
 
                                 if (urls_to_try.length > 0) {
                                     load_codeword(urls_to_try[0]).then(function(_resolve) {
+                                        console.log("Load from" + urls_to_try[0])
                                         resolve()
                                     }, function (error) {
                                         resolve()
@@ -215,7 +225,7 @@ codeword.scan_and_replace = function () {
 
         var has_custom_elements = false
         for (var e=0; e<_window.to_visit_stack.length; e++) {
-            if (is_custom_el(_window.to_visit_stack[e][2].tagName) == true) {
+            if (is_codeword(_window.to_visit_stack[e][2].tagName) == true) {
                 has_custom_elements = true
             }
         }
@@ -323,7 +333,7 @@ codeword.attached_callback = function (el, force) {
             // add all custom elements with the attribute 'var'
             var template_element = template_elements[t]
             var template_attributes = template_elements[t].attributes
-            if (is_custom_el(template_element.tagName) == true && template_element.hasAttribute("var")) {
+            if (is_var(template_element)) {
                 var var_name = template_element.tagName.toLowerCase()
                 template_vars.push(var_name)
                 _window.dictionary[var_name] = "variable"
@@ -332,7 +342,7 @@ codeword.attached_callback = function (el, force) {
             // add all attributes with custom element names in them
             for (var a=0; a<template_elements[t].attributes.length; a++) {
                 var attribute = template_attributes[a]
-                var var_match = attribute.value.match(codeword_regexp)
+                var var_match = attribute.value.match(var_regexp)
                 if (var_match != null) {
                     for (var m=0; m<var_match.length; m++) {
                         var stripped_match = var_match[m].substring(1, var_match[m].length - 1) // codeword name
@@ -358,7 +368,7 @@ codeword.attached_callback = function (el, force) {
         for(var c=0; c<_el_children.length; c++) {
             var child_el = _el_children[c]
             for (var a=0; a<child_el.attributes.length; a++) {
-                if (is_custom_el(child_el.attributes[a].name)) {
+                if (is_var(child_el.attributes[a].name)) {
                     input_vars[child_el.attributes[a].name] = child_el.attributes[a].value  
                 }
             }
@@ -366,38 +376,22 @@ codeword.attached_callback = function (el, force) {
 
         if (_el.attributes.length > 0) {
             for (var a=0; a<_el.attributes.length; a++) {
-                if (is_custom_el(_el.attributes[a].name)) {
+                if (is_var(_el.attributes[a].name)) {
                     input_vars[_el.attributes[a].name] = _el.attributes[a].value    
                 }
             }
         }
 
-        // handle split variables (var-1|var-2)
-        var split_vars = _el.innerHTML.trim().split("|")
-        if (split_vars.length > 1) {
-            for(var s=0; s<split_vars.length; s++) {
-                // replace var-x using text replace
-                var var_name = "var-" + (s + 1)
-                var var_value = split_vars[s]
-
-                input_vars[var_name] = var_value
-            }
-
-        // handle <inner-html>
-        } else if (prototype_template.querySelector("inner-html") != null || template_vars.indexOf("inner-html") > -1) {
-            input_vars['inner-html'] = _el.innerHTML
-        } else {
         // handle custom named variables
-            var fed_in_variable_elements = _el.querySelectorAll("*")
-            for (var c=0; c<fed_in_variable_elements.length; c++) {
-                var fed_in_variable_element = fed_in_variable_elements[c]
+        var fed_in_variable_elements = _el.querySelectorAll("*")
+        for (var c=0; c<fed_in_variable_elements.length; c++) {
+            var fed_in_variable_element = fed_in_variable_elements[c]
 
-                // if it's a custom element and not an AMP element
-                // replace its innerhtml
-                var fed_in_variable_element_tagname = fed_in_variable_element.tagName.toLowerCase()
-                if (is_custom_el(fed_in_variable_element_tagname)) {
-                    input_vars[fed_in_variable_element_tagname] = fed_in_variable_element.innerHTML
-                }
+            // if it's a custom element and not an AMP element
+            // replace its innerhtml
+            var fed_in_variable_element_tagname = fed_in_variable_element.tagName.toLowerCase()
+            if (is_var(fed_in_variable_element_tagname)) {
+                input_vars[fed_in_variable_element_tagname] = fed_in_variable_element.innerHTML
             }
         }
 
@@ -407,10 +401,8 @@ codeword.attached_callback = function (el, force) {
             var var_name = input_var_keys[k]
             var var_value = input_vars[var_name]
 
-            // raw replace: to deal with weird attributes (ie. [class])
             preparsed_template = preparsed_template.replace(new RegExp("<" + var_name + "></" + var_name + ">", "g"), var_value)
-            preparsed_template = preparsed_template.replace(new RegExp("<" + var_name + ">", "g"), var_value)
-            preparsed_template = preparsed_template.replace(new RegExp("&lt;" + var_name + "&gt;", "g"), var_value) // for encoded href attributes
+            preparsed_template = preparsed_template.replace(new RegExp("&lt;" + var_name + "&gt;&lt;/" + var_name + "&gt;", "g"), var_value)
         }
 
         prototype_template.innerHTML = preparsed_template
@@ -419,7 +411,7 @@ codeword.attached_callback = function (el, force) {
             var var_value = input_vars[var_name]
 
             // replace all input_vars found as elements in codeword template
-            while (prototype_template.querySelector(var_name) != null && is_custom_el(var_name)) {
+            while (prototype_template.querySelector(var_name) != null && is_var(var_name)) {
                 prototype_template.querySelector(var_name).outerHTML = var_value
             }
 
@@ -433,36 +425,9 @@ codeword.attached_callback = function (el, force) {
                     var attr_value = attribute.value
 
                     // replace attribute value with the input value (also handle encoded values)
-                    if ((attr_value.indexOf("<" + var_name + ">") > -1 || attr_value.indexOf("&lt;" + var_name + "&gt;") > -1) && is_custom_el(var_name)) {
-                        var new_attribute_value = attribute.value.replace("<" + var_name + ">", var_value)
-                        // new_attribute_value = attribute.value.replace("&lt;" + var_name + "&gt;", var_value)
-                        template_element.setAttribute(attribute.name, new_attribute_value)
-                    }
-                }
-            }
-        }
-
-        // CLEAN UP
-        // remove any unreplaced passed in variables in as attributes
-        var template_elements = prototype_template.querySelectorAll("*")
-        for (var t=0; t<template_elements.length; t++) {
-            var template_element = template_elements[t]
-            var element_name = template_element.tagName.toLowerCase()
-            var element_is_var = template_element.hasAttribute('var') || element_name.startsWith("var-") || element_name == "inner-html"
-            
-            // if this element is a unreplaced custom-element, remove it
-            if (is_custom_el(element_name) && element_is_var) {
-                template_element.remove()
-            
-            // if this element is not a custom element, but has attributes
-            // with custom elements in it, remove them
-            } else {
-                var template_attributes = template_element.attributes
-                for (var a=0; a<template_element.attributes.length; a++) {
-                    var attribute = template_attributes[a]
-                    var attribute_match = attribute.value.match(codeword_regexp)
-                    if (attribute_match != null) {
-                        var new_attribute_value = attribute.value.replace(attribute_match[0], "")
+                    if ((attr_value.indexOf("<" + var_name + ">") > -1 || attr_value.indexOf("&lt;" + var_name + "&gt;") > -1) && is_var(var_name)) {
+                        var new_attribute_value = attribute.value.replace("<" + var_name + "></" + var_name + ">", var_value)
+                        new_attribute_value = attribute.value.replace("&lt;" + var_name + "&gt;&lt;/" + var_name + "&gt;", var_value)
                         template_element.setAttribute(attribute.name, new_attribute_value)
                     }
                 }
