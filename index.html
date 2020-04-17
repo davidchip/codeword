@@ -164,21 +164,28 @@ codeword.process_scan = function (max_depth) {
                     var cache_buster = "?t=" + Date.now()
 
                     // attempt local load from /dictionary
-                    var path = "codewords/" + el_tagname + ".html" + cache_buster
+                    var path = "codewords/" + el_tagname + ".html"
                     parser.href = _window.origin + src_folder + path
                     urls_to_try.push(parser.href)
-                
-                    // attempt local wildcard load
-                    var wildcard_path = "codewords/" + el_tagname.split("-")[0] + "-*.html" + cache_buster
-                    parser.href = _window.origin + src_folder + wildcard_path
-                    urls_to_try.push(parser.href)
+
+                    if (is_node == false) {
+                        path = path + cache_buster
+                    }
 
                     // attempt load from world dictionary
                     try {
-                        var protocol = _window.location.protocol
+                        if (_window.location.protocol == "https:") {
+                            var protocol = "https:"
+                        } else {
+                            throw "error"
+                        }
                     } catch (error) {
-                        var protocol = "http:" }
-                    var world_dictionary = protocol + "//dictionary.codeword.it/" + el_tagname + ".html" + cache_buster
+                        var protocol = "http:" 
+                    }
+                    var world_dictionary = protocol + "//dictionary.codeword.it/" + el_tagname + ".html"
+                    if (is_node == false) {
+                        world_dictionary = world_dictionary + cache_buster
+                    }
                     urls_to_try.push(world_dictionary)
 
                     load_codeword = function (def_url) {
@@ -244,8 +251,13 @@ codeword.load_definition = function (url) {
         if (is_node == true) {
             if (url.indexOf("https") == -1) {
                 var raw_html = fs.readFileSync(url, "utf8");
-                resolve(raw_html)
+
+                resolve({
+                    definition: raw_html,
+                    version: "local"
+                })
             } else {
+
                 request.get(url, function (error, response, body) {
                     if (!error && response.statusCode == 200) {
                         resolve(body)
@@ -305,11 +317,8 @@ codeword.attached_callback = function (el, force) {
     }
 
     var _el_name = _el.tagName.toLowerCase()
-    var _el_name_wildcard = _el_name.split("-")[0] + "-*"
     if (_window.prototypes.hasOwnProperty(_el_name) == true) {
         _el_name = _el_name
-    } else if (_window.prototypes.hasOwnProperty(_el_name_wildcard) == true) {
-        _el_name = _el_name_wildcard
     } else {
         _el_name = null
     }
@@ -517,7 +526,7 @@ codeword.parse_definition = function (text, origin_url, version) {
 
             prototype["attachedCallback"] = codeword.attached_callback
 
-            if (_window.dictionary.hasOwnProperty(def_name) == true && _window.dictionary[def_name] != "defined") {
+            if (_window.dictionary.hasOwnProperty(def_name) == true && _window.dictionary[def_name] != "defined" && is_var(def_name) == false) {
                 if (def_name.indexOf("*") == -1) {
                     _document.registerElement(def_name, {
                         prototype: prototype
@@ -550,6 +559,10 @@ _document.addEventListener("DOMContentLoaded", function () {
 
             fs.writeFileSync(output_file, output)
             console.log("Succesfully compiled " + input_file + ".")
+
+            if (Object.keys(_window.world_dictionary_versions).length > 0) {
+                fs.writeFileSync("./codewords.json", JSON.stringify(_window.world_dictionary_versions))
+            }
         }, 5000)
     }
 })
