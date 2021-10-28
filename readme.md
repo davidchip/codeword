@@ -3,7 +3,7 @@ _Codeword_ makes it dead-simple to re-use custom HTML elements across a static s
 Basic Usage
 ===
 
-Let's say you wanted to re-use a footer bar across a few different pages. With Codeword, your homepage (index.html) would look something like this:
+Let's say you wanted to re-use a footer bar across a few different pages. With Codeword, your homepage (index.html) would look something like:
 
 ```html
 <html>
@@ -19,7 +19,7 @@ Let's say you wanted to re-use a footer bar across a few different pages. With C
 </html>
 ```
 
-To import your `footer-bar` codeword, just **add a folder called `codewords/`** to your website's root directory. Then add an HTML file of the same name:
+To import this `footer-bar` codeword, just **add a folder called `codewords/`** to your website's root directory. Then add an HTML file of the same name:
 
 ```.
 ├── codewords
@@ -115,8 +115,13 @@ Our deployed site now looks like:
 </html>
 ```
 
-Advanced Usage - Variables
+Advanced Usage
 ===
+
+This section reviews Codeword's support for variables, wildcard elements, and deployment instructions.
+
+Variables
+---
 
 Codeword's can have variables. These are useful for creating more dynamic custom elements. First off:
 
@@ -124,7 +129,7 @@ Codeword's can have variables. These are useful for creating more dynamic custom
 
 **Variables must be 1 name long, and end in a dash**: `name-`, `year-`, `color-` are all proper.
 
-To define a variable, simply shove it into definition's template:
+To define a variable, simply shove it into the definition's template:
 
 ```html
 <footer-bar definition>
@@ -144,8 +149,19 @@ The above `<year->` variable will have a default value of 2021, but can now be a
     <body>
         I am the content of a page.
 
-        </footer-bar>
+        <footer-bar>
             <year->1950</year->
+        </footer-bar>
+    </body>
+```
+
+Or, if you find it cleaner, you can pass your variable's values in as attributes instead of elements (just don't forget that last dash):
+
+```html
+    <body>
+        I am the content of a page.
+
+        <footer-bar year-="1950">
         </footer-bar>
     </body>
 ```
@@ -164,7 +180,148 @@ Our compiled `index.html` will now look like:
 </html>
 ```
 
-Advanced Examples - Varibles in CSS
+Wildcards
+---
+
+Let's say you wanted to have a light and dark version of your `footer-bar` without defining 2 different codewords. Simply **use an `*` in your definition's name**, and then you can reference the wildcard with `footer1-`, `footer2-`, etc. Like so:
+
+```html
+<footer-* definition>
+
+    <template>
+        <footer data-color="<footer1-></footer1>">
+            Copyright My Magic Company <year->2021</year->
+        </footer>
+    </template>
+
+    <style>
+        footer[data-color="light"] {
+            background-color:white;
+        }
+
+        footer[data-color="dark"] {
+            background-color:gray;
+        }
+    </style>
+
+</footer-*>
+```
+
+Now in your `index.html`, just adjust the codeword's name:
+
+```html
+    <body>
+        I am the content of a page.
+
+        <footer-light>
+        </footer-light>
+    </body>
+```
+
+And now your compiled `index.html` will look like:
+
+```html
+<html>
+    <style>
+        footer[data-color="light"] {
+            background-color:white;
+        }
+
+        footer[data-color="dark"] {
+            background-color:gray;
+        }
+    </style>
+
+    <body>
+        I am the content of a page.
+
+        <footer data-color="light">
+            Copyright My Magic Company 1950
+        </footer>
+    </body>
+</html>
+```
+
+Example - Longer Wildcards
+---
+
+The first part of the wildcard, `footer`, must match the first name of the codeword. But you can add as many matching names as you want. Building on the example, let's say we wanted a big and small version, on top of our light and dark versions. Here's the code:
+
+```html
+<footer-* definition>
+
+    <template>
+        <footer data-color="<footer1-></footer1>" data-size="<footer2-></footer2->">
+            Copyright My Magic Company <year->2021</year->
+        </footer>
+    </template>
+
+    <style>
+        footer[data-color="light"] {
+            background-color:white;
+        }
+
+        footer[data-color="dark"] {
+            background-color:gray;
+        }
+
+        footer[data-color="small"] {
+            font-size:12px;
+        }
+
+        footer[data-color="big"] {
+            font-size:22px;
+        }
+    </style>
+
+</footer-*>
+```
+
+Now in your `index.html`, just adjust the codeword's name:
+
+```html
+    <body>
+        I am the content of a page.
+
+        <footer-light-big>
+        </footer-light-big>
+    </body>
+```
+
+And now your compiled `index.html` will look like:
+
+```html
+<html>
+    <style>
+        footer[data-color="light"] {
+            background-color:white;
+        }
+
+        footer[data-color="dark"] {
+            background-color:gray;
+        }
+
+        footer[data-color="small"] {
+            font-size:12px;
+        }
+
+        footer[data-color="big"] {
+            font-size:22px;
+        }
+    </style>
+
+    <body>
+        I am the content of a page.
+
+        <footer data-color="light" data-size="big">
+            Copyright My Magic Company 1950
+        </footer>
+    </body>
+</html>
+```
+
+Example - Varibles in CSS
+---
 
 Variables can also be used to link to styles like so:
 

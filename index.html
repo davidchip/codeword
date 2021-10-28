@@ -340,7 +340,7 @@ codeword.attached_callback = function (el, force) {
         var template_vars = []
         for (var t=0; t<template_elements.length; t++) {
 
-            // add all custom elements with the attribute 'var'
+            // add all custom elements that pass the variable test
             var template_element = template_elements[t]
             var template_attributes = template_elements[t].attributes
             if (is_var(template_element)) {
