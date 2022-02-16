@@ -78,7 +78,7 @@ function is_codeword (tagName) {
         return false
     }
 
-    var _is_custom_el = (tagName.indexOf("-") > -1 && tagName.startsWith("amp-") == false && tagName.startsWith("i-amphtml") == false && tagName.endsWith("-") == false)
+    var _is_custom_el = (tagName.indexOf("-") > -1 && tagName.startsWith("amp-") == false && tagName.startsWith("i-amphtml") == false && tagName.startsWith("bento-") == false && tagName.endsWith("-") == false)
     return _is_custom_el
 }
 
